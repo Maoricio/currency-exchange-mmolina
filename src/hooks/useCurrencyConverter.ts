@@ -11,14 +11,14 @@ export function useCurrencyConverter() {
   const { data: currencies, isLoading: isLoadingCurrencies } = useQuery({
     queryKey: ["currencies"],
     queryFn: fetchCurrencies,
-    staleTime: 5 * 60 * 60 * 1000, // 5 horas en milisegundos
-    cacheTime: 5 * 60 * 60 * 1000, // También puedes usar cacheTime para eliminar la caché después de 5 horas
+    staleTime: 5 * 60 * 60 * 1000, // 5 hours
   });
 
   const { data: rates, isLoading: isLoadingRates } = useQuery({
     queryKey: ["rates", fromCurrency],
     queryFn: () => fetchExchangeRates(fromCurrency),
     enabled: !!fromCurrency,
+    staleTime: 5 * 60 * 60 * 1000, // 5 hours
   });
 
   const convert = (): ConversionResult | null => {
