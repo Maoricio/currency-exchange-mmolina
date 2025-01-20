@@ -16,20 +16,16 @@ import ChangeCurrencyIcon from "@/assets/img/icon/change-currency.svg?react";
 
 export const CurrencyConverter = () => {
   const {
-    fromCurrency,
-    setFromCurrency,
-    toCurrency,
-    setToCurrency,
-    amount,
-    setAmount,
-    currencies,
+    error,
     isLoading,
-    convert,
+    currencies,
+    exchangeData,
+    setAmount,
+    setToCurrency,
+    setFromCurrency,
   } = useCurrencyConverter();
 
-  const result = convert();
-
-  const mainTitle = getMainTitle({ result, isLoading });
+  const rateError = !isLoading && !exchangeData?.rate;
 
   return (
     <PageWrapper>
@@ -41,7 +37,13 @@ export const CurrencyConverter = () => {
         minH={{ base: "96px", md: "0" }}
       >
         <Heading size={"large"} textAlign={"center"}>
-          {mainTitle}
+          {getMainTitle({
+            exchangeData,
+            currencies,
+            error: error,
+            rateError: rateError,
+            isLoading,
+          })}
         </Heading>
       </Flex>
 
@@ -64,13 +66,14 @@ export const CurrencyConverter = () => {
             align={{ base: "flex-start", md: "center" }}
             mb={{ base: "16px", md: "70px" }}
           >
-            <AmountInput value={amount} onChange={setAmount} />
+            <AmountInput value={exchangeData.amount} onChange={setAmount} />
 
             <CurrencySelect
               label="From"
-              value={fromCurrency}
+              value={exchangeData.fromCurrency}
               onChange={setFromCurrency}
               currencies={currencies}
+              error={error}
             />
             <IconButton
               aria-label={`change-currency`}
@@ -78,8 +81,8 @@ export const CurrencyConverter = () => {
               icon={<Icon w={"42px"} h={"42px"} as={ChangeCurrencyIcon} />}
               onClick={(e) => {
                 e.preventDefault();
-                setFromCurrency(toCurrency);
-                setToCurrency(fromCurrency);
+                setFromCurrency(exchangeData.toCurrency);
+                setToCurrency(exchangeData.fromCurrency);
               }}
               _hover={{}}
               _active={{}}
@@ -89,13 +92,19 @@ export const CurrencyConverter = () => {
 
             <CurrencySelect
               label="To"
-              value={toCurrency}
+              value={exchangeData.toCurrency}
               onChange={setToCurrency}
               currencies={currencies}
+              error={rateError && !error}
             />
           </Flex>
 
-          <ExchangeResult result={result} isLoading={isLoading} />
+          <ExchangeResult
+            exchangeData={exchangeData}
+            currencies={currencies}
+            isLoading={isLoading}
+            error={error || !exchangeData?.rate}
+          />
 
           <Show above={"lg"}>
             <VStack
@@ -106,14 +115,24 @@ export const CurrencyConverter = () => {
               p={"0 20px"}
             >
               <RateBanner />
-              <RateLabel result={result} isLoading={isLoading} />
+              <RateLabel
+                exchangeData={exchangeData}
+                currencies={currencies}
+                isLoading={isLoading}
+                error={error}
+              />
             </VStack>
           </Show>
         </CardBody>
       </Card>
 
       <Show below={"lg"}>
-        <RateLabel result={result} isLoading={isLoading} />
+        <RateLabel
+          exchangeData={exchangeData}
+          currencies={currencies}
+          isLoading={isLoading}
+          error={error}
+        />
       </Show>
     </PageWrapper>
   );

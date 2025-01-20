@@ -8,13 +8,15 @@ import {
 } from "@chakra-ui/react";
 
 interface AmountInputProps {
-  value: number;
+  value: number | undefined;
   onChange: (value: number) => void;
+  defaultValue?: number;
 }
 
 export const AmountInput: React.FC<AmountInputProps> = ({
   value,
   onChange,
+  defaultValue = 1,
 }) => {
   return (
     <FormControl id={"amount"} w={"100%"}>
@@ -36,7 +38,7 @@ export const AmountInput: React.FC<AmountInputProps> = ({
           w={"100%"}
           defaultValue={1}
           min={1}
-          value={value}
+          value={value ?? defaultValue}
           onChange={(valueString) => onChange(Number(valueString))}
         >
           <NumberInputField

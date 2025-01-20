@@ -1,3 +1,9 @@
+export interface ExchangeRateInput {
+  amount: number;
+  fromCurrency: string;
+  toCurrency: string;
+}
+
 export interface Currency {
   name: string;
   symbol: string;
@@ -10,12 +16,9 @@ export interface ExchangeRates {
 }
 
 export interface ConversionResult {
-  fromAmount: number;
-  toAmount: number;
-  fromCurrency: string;
-  toCurrency: string;
-  fromCurrencyName: string;
-  toCurrencyName: string;
-  rate: number;
-  lastUpdated: string;
+  toAmount?: number;
+  rate?: number;
+  lastUpdated?: string;
 }
+
+export type ExchangeData = ExchangeRateInput & ConversionResult;

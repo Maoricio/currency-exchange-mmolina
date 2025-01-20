@@ -1,16 +1,28 @@
 import { Link, Text } from "@chakra-ui/react";
-import { ConversionResult } from "@/types/currency";
-import { getErrorLoadingMsg, formatDate } from "@/utils";
+import { formatDate } from "@/utils";
+import { ExchangeData, Currency } from "@/types/currency";
 
 interface RateLabelProps {
-  result: ConversionResult | null;
   isLoading: boolean;
+  error: boolean;
+  exchangeData: ExchangeData;
+  currencies?: Record<string, Currency>;
 }
 
 interface CurrencyLinkProps {
-  currencyCode: string;
-  currencyName: string;
+  currencyCode?: string;
+  currencyName?: string;
 }
+
+const StyledText: React.FC<React.PropsWithChildren> = ({ children }) => (
+  <Text
+    size="mini"
+    lineHeight={{ base: "23px", md: "36px" }}
+    mr={{ base: "0", md: "10px" }}
+  >
+    {children}
+  </Text>
+);
 
 const CurrencyLink: React.FC<CurrencyLinkProps> = ({
   currencyCode,
@@ -19,54 +31,40 @@ const CurrencyLink: React.FC<CurrencyLinkProps> = ({
   const normalizedCode = currencyCode?.toLowerCase();
   const normalizedName = currencyName?.replace(/ /g, "-").toLowerCase();
 
-  if (!currencyCode || !currencyName) {
-    return null;
-  }
+  const href =
+    normalizedCode && normalizedName
+      ? `https://www.xe.com/currency/${normalizedCode}-${normalizedName}/`
+      : `https://www.xe.com/currency`;
 
   return (
-    <Link
-      href={`https://www.xe.com/currency/${normalizedCode}-${normalizedName}/`}
-      borderBottom="1px solid #000000"
-      _hover={{}}
-      isExternal
-    >
-      {currencyName}
+    <Link href={href} borderBottom="1px solid #000000" _hover={{}} isExternal>
+      {currencyName ?? normalizedCode}
     </Link>
   );
 };
 
-export const RateLabel: React.FC<RateLabelProps> = ({ result, isLoading }) => {
-  const renderCurrencyConversion = () => {
-    if (!result) return null;
+export const RateLabel: React.FC<RateLabelProps> = ({
+  isLoading,
+  error,
+  exchangeData,
+  currencies,
+}) => {
+  if (isLoading) return <StyledText>Loading...</StyledText>;
 
-    const {
-      fromCurrencyName,
-      fromCurrency,
-      toCurrencyName,
-      toCurrency,
-      lastUpdated,
-    } = result;
-
-    return (
-      <>
-        <CurrencyLink
-          currencyCode={fromCurrency}
-          currencyName={fromCurrencyName}
-        />{" "}
-        to{" "}
-        <CurrencyLink currencyCode={toCurrency} currencyName={toCurrencyName} />{" "}
-        conversion - Last updated on {formatDate(lastUpdated)}
-      </>
-    );
-  };
-
+  const { fromCurrency, toCurrency, lastUpdated } = exchangeData;
   return (
-    <Text
-      size="mini"
-      lineHeight={{ base: "23px", md: "36px" }}
-      mr={{ base: "0", md: "10px" }}
-    >
-      {result ? renderCurrencyConversion() : getErrorLoadingMsg(isLoading)}
-    </Text>
+    <StyledText>
+      <CurrencyLink
+        currencyCode={fromCurrency}
+        currencyName={currencies?.[fromCurrency]?.name}
+      />{" "}
+      to{" "}
+      <CurrencyLink
+        currencyCode={toCurrency}
+        currencyName={currencies?.[toCurrency]?.name}
+      />{" "}
+      conversion
+      {!error && ` - Last updated on ${formatDate(lastUpdated)}`}
+    </StyledText>
   );
 };

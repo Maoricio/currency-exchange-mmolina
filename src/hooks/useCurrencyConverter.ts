@@ -1,53 +1,54 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchCurrencies, fetchExchangeRates } from "@/api/currency";
-import { ConversionResult } from "@/types/currency";
+import { useState, useMemo } from "react";
+import { useCurrencies } from "./useCurrencies";
+import { useExchangeRates } from "./useExchangeRates";
+import { type ConversionResult } from "@/types/currency";
+import { ConvertCurrency } from "@/utils";
+
+const DEFAULT_FROM_CURRENCY = "USD";
+const DEFAULT_TO_CURRENCY = "EUR";
+const DEFAULT_AMOUNT = 1;
 
 export function useCurrencyConverter() {
-  const [fromCurrency, setFromCurrency] = useState<string>("USD");
-  const [toCurrency, setToCurrency] = useState<string>("EUR");
-  const [amount, setAmount] = useState<number>(1);
+  const [fromCurrency, setFromCurrency] = useState<string>(
+    DEFAULT_FROM_CURRENCY
+  );
+  const [toCurrency, setToCurrency] = useState<string>(DEFAULT_TO_CURRENCY);
+  const [amount, setAmount] = useState<number>(DEFAULT_AMOUNT);
 
-  const { data: currencies, isLoading: isLoadingCurrencies } = useQuery({
-    queryKey: ["currencies"],
-    queryFn: fetchCurrencies,
-    staleTime: 5 * 60 * 60 * 1000, // 5 hours
-  });
+  const {
+    data: currencies,
+    isLoading: isLoadingCurrencies,
+    error: currencyError,
+  } = useCurrencies();
 
-  const { data: rates, isLoading: isLoadingRates } = useQuery({
-    queryKey: ["rates", fromCurrency],
-    queryFn: () => fetchExchangeRates(fromCurrency),
-    enabled: !!fromCurrency,
-    staleTime: 5 * 60 * 60 * 1000, // 5 hours
-  });
+  const {
+    data: rates,
+    isLoading: isLoadingRates,
+    error: ratesError,
+  } = useExchangeRates(fromCurrency);
 
-  const convert = (): ConversionResult | null => {
+  const conversionResult = useMemo<ConversionResult | null>(() => {
     if (!rates || !currencies) return null;
-
-    const rate = rates.rates[toCurrency] / rates.rates[fromCurrency];
-    const toAmount = amount * rate;
-
-    return {
-      fromAmount: amount,
-      toAmount,
+    const result = ConvertCurrency({
+      amount,
       fromCurrency,
       toCurrency,
-      fromCurrencyName: currencies[fromCurrency].name,
-      toCurrencyName: currencies[toCurrency].name,
-      rate,
+      rates,
+    });
+
+    return {
+      ...result,
       lastUpdated: rates.date,
     };
-  };
+  }, [amount, fromCurrency, toCurrency, currencies, rates]);
 
   return {
-    fromCurrency,
     setFromCurrency,
-    toCurrency,
     setToCurrency,
-    amount,
-    setAmount,
-    currencies,
+    setAmount: setAmount,
+    error: !!(currencyError || ratesError),
     isLoading: isLoadingCurrencies || isLoadingRates,
-    convert,
+    currencies,
+    exchangeData: { ...conversionResult, fromCurrency, toCurrency, amount },
   };
 }

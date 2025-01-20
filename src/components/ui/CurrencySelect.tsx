@@ -5,18 +5,21 @@ import ChevronDownIcon from "@/assets/img/icon/chevron-down.svg?react";
 interface CurrencySelectProps {
   label: string;
   value: string;
+  error: boolean;
   onChange: (value: string) => void;
   currencies?: Record<string, Currency>;
+  errorMessage?: string;
 }
 
 export const CurrencySelect: React.FC<CurrencySelectProps> = ({
   label,
   value,
+  error,
   onChange,
   currencies,
 }) => {
   return (
-    <FormControl id={`currency-${label}`} w={"100%"}>
+    <FormControl id={`currency-${label}`} w={"100%"} isInvalid={error}>
       <FormLabel
         htmlFor={`currency-${label}`}
         fontWeight={600}
