@@ -18,6 +18,12 @@ export const AmountInput: React.FC<AmountInputProps> = ({
   onChange,
   defaultValue = 1,
 }) => {
+  const handleChange = (valueString: string) => {
+    const sanitizedValue = valueString.replace(/[^0-9.]/g, "");
+    if (!isNaN(Number(sanitizedValue))) {
+      onChange(Number(sanitizedValue));
+    }
+  };
   return (
     <FormControl id={"amount"} w={"100%"}>
       <FormLabel
@@ -39,7 +45,7 @@ export const AmountInput: React.FC<AmountInputProps> = ({
           defaultValue={1}
           min={1}
           value={value ?? defaultValue}
-          onChange={(valueString) => onChange(Number(valueString))}
+          onChange={(valueString) => handleChange(valueString)}
         >
           <NumberInputField
             fontWeight={600}
